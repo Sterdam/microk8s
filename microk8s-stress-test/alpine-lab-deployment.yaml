@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: stress-test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alpine-lab
+  namespace: stress-test
+  labels:
+    app: alpine-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alpine-lab
+  template:
+    metadata:
+      labels:
+        app: alpine-lab
+    spec:
+      containers:
+      - name: alpine-lab
+        image: localhost:32000/alpine-lab:latest
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          limits:
+            cpu: "2"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "500Mi"
+        ports:
+        - containerPort: 22
+          name: ssh
+        volumeMounts:
+        - name: stress-scripts-volume
+          mountPath: /stress-scripts
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: stress-scripts-volume
+        emptyDir: {}
+      - name: tmp-volume
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alpine-lab
+  namespace: stress-test
+spec:
+  selector:
+    app: alpine-lab
+  ports:
+  - port: 22
+    targetPort: 22
+    name: ssh
+  type: ClusterIP

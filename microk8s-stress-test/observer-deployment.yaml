@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: observer
+  namespace: stress-test
+  labels:
+    app: observer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: observer
+  template:
+    metadata:
+      labels:
+        app: observer
+    spec:
+      serviceAccountName: observer-account
+      containers:
+      - name: observer
+        image: localhost:32000/observer:latest
+        imagePullPolicy: Always
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+        - name: kube-config
+          mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+          readOnly: true
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}
+      - name: kube-config
+        projected:
+          sources:
+          - serviceAccountToken:
+              expirationSeconds: 3600
+              path: token
+          - configMap:
+              name: kube-root-ca.crt
+              items:
+              - key: ca.crt
+                path: ca.crt
+          - downwardAPI:
+              items:
+              - path: namespace
+                fieldRef:
+                  fieldPath: metadata.namespace
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: observer
+  namespace: stress-test
+spec:
+  selector:
+    app: observer
+  ports:
+  - port: 22
+    targetPort: 22
+    name: ssh
+  type: ClusterIP
