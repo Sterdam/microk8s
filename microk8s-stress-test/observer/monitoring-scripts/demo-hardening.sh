@@ -1,5 +1,5 @@
 #!/bin/bash
-# stress-monitor.sh - Démonstration efficace des limites de hardening
+# stress-monitor.sh - Démonstration des limites de hardening
 
 # Couleurs
 RED='\033[0;31m'
@@ -12,7 +12,6 @@ RESET='\033[0m'
 POD_NAME=$(kubectl get pods -n stress-test -l app=alpine-lab -o jsonpath="{.items[0].metadata.name}")
 NAMESPACE="stress-test"
 
-# Afficher une ligne de séparation
 line() {
   echo -e "${BLUE}=================================================${RESET}"
 }

@@ -43,15 +43,9 @@ spec:
         - containerPort: 22
           name: ssh
         volumeMounts:
-        # Retrait du montage qui écrasait le répertoire contenant les scripts
-        # - name: stress-scripts-volume
-        #   mountPath: /stress-scripts
         - name: tmp-volume
           mountPath: /tmp
       volumes:
-      # Retrait du volume qui écrasait les scripts
-      # - name: stress-scripts-volume
-      #   emptyDir: {}
       - name: tmp-volume
         emptyDir: {}
 ---
